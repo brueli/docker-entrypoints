@@ -12,11 +12,10 @@ namespace PsEntrypoint
 {
     internal class HostUI : PSHostUserInterface
     {
-        private HostRawUI m_RawUI;
+        private readonly PSHostRawUserInterface m_RawUI = null;
 
         public HostUI()
         {
-            //m_RawUI = new HostRawUI();
         }
 
         public override PSHostRawUserInterface RawUI => m_RawUI;
