@@ -1,6 +1,6 @@
 ﻿<#
 .PURPOSE
-    Test script - loop 20 times unless a TERM signal arrives
+    Test script - report a fatal error after 5 cycles
 #>
 
 # startup
@@ -12,9 +12,9 @@ while(!$entrypoint.Shutdown)
     Write-Verbose -Verbose -Message "Running"
     Start-Sleep -Seconds 1
 
-    if (++$i -ge 20)
+    if (++$i -ge 5)
     {
-        break
+        $entrypoint.ReportFatalError([Exception]::new("Container image runtime error"))
     }
 }
 

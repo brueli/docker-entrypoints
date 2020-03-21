@@ -1,6 +1,6 @@
 ﻿<#
 .PURPOSE
-    Test script - loop 20 times unless a TERM signal arrives
+    Test script - Request a Shutdown after 5 cycles.
 #>
 
 # startup
@@ -12,9 +12,10 @@ while(!$entrypoint.Shutdown)
     Write-Verbose -Verbose -Message "Running"
     Start-Sleep -Seconds 1
 
-    if (++$i -ge 20)
+    if (++$i -ge 5)
     {
-        break
+        # request a shutdown after 5 cycles
+        $entrypoint.RequestShutdown()
     }
 }
 
