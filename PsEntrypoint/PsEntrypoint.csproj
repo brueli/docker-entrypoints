@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Arguments\CommandLineArguments.cs" />
     <Compile Include="Arguments\PsEntrypointArgs.cs" />
     <Compile Include="EntrypointState.cs" />
     <Compile Include="IEntrypointState.cs" />
@@ -60,5 +59,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
+  <Import Project="..\Entrypoint.Shared\Entrypoint.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

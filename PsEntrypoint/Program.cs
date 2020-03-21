@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Entrypoint.Shared;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -160,9 +161,9 @@ namespace PsEntrypoint
                 cliArgs.EntrypointCommand = System.IO.File.ReadAllText(cliArgs.EntrypointScript);
             }
 
-            if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownScript))
+            if (!string.IsNullOrWhiteSpace(cliArgs.StopScript))
             {
-                cliArgs.ShutdownCommand = System.IO.File.ReadAllText(cliArgs.ShutdownScript);
+                cliArgs.StopCommand = System.IO.File.ReadAllText(cliArgs.StopScript);
             }
 
             var initialSessionState = InitialSessionState.CreateDefault();
@@ -206,12 +207,12 @@ namespace PsEntrypoint
                 }
 
                 // run shutdown command
-                if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownCommand))
+                if (!string.IsNullOrWhiteSpace(cliArgs.StopCommand))
                 {
                     using (powershell = PowerShell.Create())
                     {
                         powershell.Runspace = runspace;
-                        powershell.AddScript(cliArgs.ShutdownCommand);
+                        powershell.AddScript(cliArgs.StopCommand);
                         var shutdownResult = powershell.BeginInvoke();
                         Console.WriteLine("Shutdown initiated");
                         Thread.Sleep(5);
@@ -248,23 +249,5 @@ namespace PsEntrypoint
 
     }
 
-    public class Logger
-    {
-        public Logger()
-        { }
 
-        public void WriteLog(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.WriteLine(message);
-        }
-
-        public void WriteFatal(string message, Exception problem)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.WriteLine($"[FATAL] {message}: {problem}");
-        }
-    }
 }

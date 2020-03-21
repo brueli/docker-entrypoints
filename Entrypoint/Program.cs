@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Entrypoint.Shared;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -31,12 +32,32 @@ namespace Entrypoint
         /// <summary>
         ///  Event set when the process is terminated.
         /// </summary>
-        private static readonly ManualResetEvent TerminationRequestedEvent;
+        private static readonly ManualResetEvent shutdownRequested;
 
         /// <summary>
         /// Event set when the process terminates.
         /// </summary>
-        private static readonly ManualResetEvent TerminationCompletedEvent;
+        private static readonly ManualResetEvent entrypointTerminated;
+
+        /// <summary>
+        /// Event set when main terminates.
+        /// </summary>
+        private static readonly ManualResetEvent mainTerminated;
+
+        /// <summary>
+        /// Close handler delegate. Stored on a static variable to prevent early garbage collection.
+        /// </summary>
+        private static readonly ConsoleCloseHandler consoleCloseHandler;
+
+        /// <summary>
+        /// Command line arguments
+        /// </summary>
+        private static EntrypointArgs cliArgs;
+
+        /// <summary>
+        /// Logger.
+        /// </summary>
+        private static Logger logger;
 
         /// <summary>
         /// Static constructor
@@ -46,9 +67,11 @@ namespace Entrypoint
             // Do this initialization here to avoid polluting Main() with it
             // also this is a great place to initialize multiple static
             // variables.
-            TerminationRequestedEvent = new ManualResetEvent(false);
-            TerminationCompletedEvent = new ManualResetEvent(false);
-            SetConsoleCtrlHandler(OnConsoleCloseEvent, true);
+            shutdownRequested = new ManualResetEvent(false);
+            entrypointTerminated = new ManualResetEvent(false);
+            mainTerminated = new ManualResetEvent(false);
+            consoleCloseHandler = new ConsoleCloseHandler(OnConsoleCloseEvent);
+            logger = new Logger();
         }
 
         /// <summary>
@@ -57,53 +80,77 @@ namespace Entrypoint
         /// <param name="args">The commandline arguments.</param>
         private static void Main(string[] args)
         {
+            SetConsoleCtrlHandler(consoleCloseHandler, true);
+
+            cliArgs = new EntrypointArgs(args);
+
             // print entrypoint information
-            var entrypointStr = string.Join(" ", args);
-            Console.WriteLine("starting entrypoint: {0}", entrypointStr);
+            logger.WriteLog($"starting entrypoint: {cliArgs.EntrypointCommand} {cliArgs.EntrypointArguments}");
 
             // run entrypoint binary
-            var binary = args.First();
-            var remainingArgs = args.Skip(1).ToArray();
-            var entrypoint = Process.Start(binary, string.Join(" ", remainingArgs));
+            var entrypoint = Process.Start(cliArgs.EntrypointCommand, cliArgs.EntrypointArguments);
 
             // wait for the kill switch
-            while (!TerminationRequestedEvent.WaitOne(0))
+            while (!shutdownRequested.WaitOne(0))
             {
                 // while waiting for the kill switch, wait for the entrypoint process to exit
                 if (entrypoint.WaitForExit(100))
                 {
                     // if entrypoint terminates, activate the kill switch
-                    TerminationRequestedEvent.Set();
+                    logger.WriteLog("entrypoint terminated");
+                    shutdownRequested.Set();
                 }
             }
 
             // wait for the kill switch
-            TerminationRequestedEvent.WaitOne();
+            shutdownRequested.WaitOne();
 
-            // stop the entrypoint
-            Console.WriteLine("stopping entrypoint (graceful)");
-            entrypoint.CloseMainWindow();
-
-            // if the entrypoint does not respond after 10 seconds, kill the entrypoint process.
-            if (!entrypoint.WaitForExit(10000))
+            // test if the entrypoint is still running
+            if (!entrypoint.HasExited)
             {
-                entrypoint.Kill();
-                Console.WriteLine("entrypoint killed");
-            }
-            // otherwise the container has stopped gracefully
-            else
-            {
-                Console.WriteLine("entrypoint stopped gracefully");
-            }
+                // stop the entrypoint
+                logger.WriteLog("stopping entrypoint (graceful)");
+                entrypoint.CloseMainWindow();
 
+                // if the entrypoint does not respond after 10 seconds, kill the entrypoint process.
+                if (!entrypoint.WaitForExit(cliArgs.StopTimeout))
+                {
+                    entrypoint.Kill();
+                    logger.WriteLog("entrypoint killed");
+                }
+                // otherwise the container has stopped gracefully
+                else
+                {
+                    logger.WriteLog("entrypoint stopped gracefully");
+                }
+            }
+            
+            // send "entrypoint terminated" signal
+            entrypointTerminated.Set();
+
+            // invoke shutdown command, if any.
+            if (!string.IsNullOrWhiteSpace(cliArgs.StopCommand))
+            { 
+                var shutdown = Process.Start(cliArgs.StopCommand, cliArgs.StopArguments);
+                if (!shutdown.WaitForExit(cliArgs.ShutdownTimeout))
+                {
+                    shutdown.Kill();
+                    logger.WriteLog("Shutdown aborted");
+                }
+                else
+                {
+                    logger.WriteLog("Shutdown completed");
+                }
+            }
+            
 #if DEBUG
             // wait for console readline before exit
             Console.WriteLine("<Press return to exit>");
             Console.ReadLine();
 #endif
 
-            // Set this to terminate immediately (if not set, the OS will eventually kill the process)
-            TerminationCompletedEvent.Set();
+            // send "main terminated" signal
+            mainTerminated.Set();
         }
 
         /// <summary>
@@ -113,10 +160,10 @@ namespace Entrypoint
         private static bool OnConsoleCloseEvent(int reason)
         {
             // Signal termination
-            TerminationRequestedEvent.Set();
+            shutdownRequested.Set();
 
             // Wait for cleanup
-            TerminationCompletedEvent.WaitOne();
+            mainTerminated.WaitOne();
 
             // Don't run other handlers, just exit.
             return true;
