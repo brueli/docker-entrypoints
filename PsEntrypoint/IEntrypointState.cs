@@ -11,5 +11,7 @@ namespace PsEntrypoint
         bool Shutdown { get; }
 
         void RequestShutdown();
+
+        void ReportFatalError(Exception problem);
     }
 }

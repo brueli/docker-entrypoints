@@ -81,6 +81,16 @@ namespace PsEntrypoint
         /// </summary>
         private static Logger logger;
 
+        /// <summary>
+        /// Variable name for Entrypoint State object in entrypoint scripts.
+        /// </summary>
+        const string EntrypointVariableName = "entrypoint";
+
+        /// <summary>
+        /// Description for the Entrypoint State object variable.
+        /// </summary>
+        const string EntrypointVariableDescription = "Entrypoint state object to interact with the entrypoint";
+
         static Program()
         {
             EntrypointState = new EntrypointState();
@@ -95,6 +105,13 @@ namespace PsEntrypoint
         static void Main(string[] args)
         {
             SetConsoleCtrlHandler(consoleCloseHandler, true);
+            EntrypointState.ReportFatalErrorCallback = (problem) => {
+                logger.WriteFatal("Fatal error in entrypoint", problem);
+                if (!cliArgs.IgnoreFatalErrors)
+                { 
+                    EntrypointState.RequestShutdown();
+                }
+            };
 
             cliArgs = new PsEntrypointArgs(args);
 
@@ -133,9 +150,6 @@ namespace PsEntrypoint
 
             mainTerminated.Set();
         }
-
-        const string EntrypointVariableName = "entrypoint";
-        const string EntrypointVariableDescription = "Entrypoint state object to interact with the entrypoint";
 
         static void PowershellThread(object state)
         {
@@ -244,6 +258,13 @@ namespace PsEntrypoint
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.BackgroundColor = ConsoleColor.Black;
             Console.WriteLine(message);
+        }
+
+        public void WriteFatal(string message, Exception problem)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine($"[FATAL] {message}: {problem}");
         }
     }
 }

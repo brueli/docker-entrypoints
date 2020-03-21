@@ -12,7 +12,9 @@ namespace PsEntrypoint
         public string EntrypointScript;
         public string ShutdownCommand;
         public string ShutdownScript;
+
         public int StopTimeout = 2000;
+        public bool IgnoreFatalErrors = false;
 
         public PsEntrypointArgs(string[] args)
             : base(args)
@@ -38,6 +40,10 @@ namespace PsEntrypoint
                 else if (Args[0].Equals("--stop-timeout") || Args[0].Equals("-t"))
                 {
                     StopTimeout = Shift<int>();
+                }
+                else if (Args[0].Equals("--ignore-fatal-errors") || Args[0].Equals("-ife"))
+                {
+                    IgnoreFatalErrors = true;
                 }
                 else
                 {

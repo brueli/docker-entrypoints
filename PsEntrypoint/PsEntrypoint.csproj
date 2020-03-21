@@ -47,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments\CommandLineArguments.cs" />
-    <Compile Include="Arguments\PoshEntrypointArgs.cs" />
+    <Compile Include="Arguments\PsEntrypointArgs.cs" />
     <Compile Include="EntrypointState.cs" />
     <Compile Include="IEntrypointState.cs" />
     <Compile Include="PSHost\HostUI.cs" />
