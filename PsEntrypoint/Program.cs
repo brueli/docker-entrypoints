@@ -16,11 +16,34 @@ namespace PsEntrypoint
 {
     class Program
     {
-        static ContainerState ContainerState;
-        static ManualResetEvent shutdownRequested;
-        static ManualResetEvent entrypointTerminated;
-        static ManualResetEvent mainTerminated;
-        static PoshEntrypointArgs cliArgs;
+        /// <summary>
+        /// Shared container state object
+        /// </summary>
+        private static ContainerState ContainerState;
+
+        /// <summary>
+        /// Shutdown request event.
+        /// Set by Ctrl+C handler or when using "$container.RequestShutdown()" in the entrypoint script.
+        /// Initiates entrypoint shutdown.
+        /// </summary>
+        private static ManualResetEvent shutdownRequested;
+
+        /// <summary>
+        /// Entrypoint terminated event.
+        /// Is set by the powershell thread to signal that the entrypoint script has terminated.
+        /// </summary>
+        private static ManualResetEvent entrypointTerminated;
+
+        /// <summary>
+        /// Main thread terminated event.
+        /// Is set by the main thread to signal its termination to the Ctrl+C handler.
+        /// </summary>
+        private static ManualResetEvent mainTerminated;
+
+        /// <summary>
+        /// Command line arguments for PSEntrypoint.exe
+        /// </summary>
+        private static PsEntrypointArgs cliArgs;
 
         /// <summary>
         /// Adds or removes an application-defined HandlerRoutine function from the list of handler functions for the calling process
@@ -53,12 +76,18 @@ namespace PsEntrypoint
         /// </summary>
         private static Thread powershellThread;
 
+        /// <summary>
+        /// Logger to send messages to the console.
+        /// </summary>
+        private static Logger logger;
+
         static Program()
         {
             ContainerState = new ContainerState();
             shutdownRequested = new ManualResetEvent(false);
             entrypointTerminated = new ManualResetEvent(false);
             mainTerminated = new ManualResetEvent(false);
+            logger = new Logger();
             powershellThread = new Thread(new ParameterizedThreadStart(PowershellThread));
             consoleCloseHandler = new ConsoleCloseHandler(OnConsoleCloseEvent);
         }
@@ -67,7 +96,7 @@ namespace PsEntrypoint
         {
             SetConsoleCtrlHandler(consoleCloseHandler, true);
 
-            cliArgs = new PoshEntrypointArgs(args);
+            cliArgs = new PsEntrypointArgs(args);
 
             powershellThread.Start(cliArgs);
 
@@ -84,10 +113,10 @@ namespace PsEntrypoint
                 else
                 {
                     ContainerState.Shutdown = true;
-                    Console.WriteLine("TERM signal received. Waiting for entrypoint to stop...");
+                    logger.WriteLog("TERM signal received. Waiting for entrypoint to stop...");
                     if (!entrypointTerminated.WaitOne(cliArgs.StopTimeout))
                     {
-                        Console.WriteLine("entrypoint did not stop after {0}ms. Forcing termination...", cliArgs.StopTimeout);
+                        logger.WriteLog($"entrypoint did not stop after {cliArgs.StopTimeout}ms. Forcing termination...");
                         powershellThread.Interrupt();
                     }
                     break;
@@ -107,7 +136,17 @@ namespace PsEntrypoint
 
         static void PowershellThread(object state)
         {
-            var cliArgs = (PoshEntrypointArgs)state;
+            var cliArgs = (PsEntrypointArgs)state;
+
+            if (!string.IsNullOrWhiteSpace(cliArgs.EntrypointScript))
+            {
+                cliArgs.EntrypointCommand = System.IO.File.ReadAllText(cliArgs.EntrypointScript);
+            }
+
+            if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownScript))
+            {
+                cliArgs.ShutdownCommand = System.IO.File.ReadAllText(cliArgs.ShutdownScript);
+            }
 
             var initialSessionState = InitialSessionState.CreateDefault();
             initialSessionState.Variables.Add(new SessionStateVariableEntry("container", (IContainerState)ContainerState, "Container status"));
@@ -116,14 +155,17 @@ namespace PsEntrypoint
 
             using (var runspace = RunspaceFactory.CreateRunspace(psHost, initialSessionState))
             {
+                PowerShell powershell;
                 runspace.Open();
-                using (var powershell = PowerShell.Create())
+
+                // run entrypoint command
+                using (powershell = PowerShell.Create())
                 {
                     powershell.Runspace = runspace;
-
                     powershell.AddScript(cliArgs.EntrypointCommand);
                     var entrypointResult = powershell.BeginInvoke();
-                    Console.WriteLine("Entrypoint started");
+                    logger.WriteLog("Entrypoint started");
+                    Thread.Sleep(5);
                     try
                     {
                         foreach (var result in powershell.EndInvoke(entrypointResult))
@@ -133,39 +175,44 @@ namespace PsEntrypoint
                     }
                     catch (ThreadInterruptedException)
                     {
-                        Console.WriteLine("entrypoint interrupted. Terminating...");
+                        logger.WriteLog("Entrypoint interrupted. Terminating...");
                         powershell.Stop();
                     }
                     catch
                     {
-                        Console.WriteLine("Entrypoint crashed");
+                        logger.WriteLog("Entrypoint crashed");
                     }
                     finally
                     {
-                        Console.WriteLine("Entrypoint stopped");
+                        logger.WriteLog("Entrypoint stopped");
                     }
-                    
-                    if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownCommand))
+                }
+
+                // run shutdown command
+                if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownCommand))
+                {
+                    using (powershell = PowerShell.Create())
                     {
-                        Console.WriteLine("Running shutdown script...");
+                        powershell.Runspace = runspace;
                         powershell.AddScript(cliArgs.ShutdownCommand);
                         var shutdownResult = powershell.BeginInvoke();
-                        Thread.Sleep(10);
+                        Console.WriteLine("Shutdown initiated");
+                        Thread.Sleep(5);
                         try
                         {
-                            foreach (var result in powershell.EndInvoke(entrypointResult))
+                            foreach (var result in powershell.EndInvoke(shutdownResult))
                             {
                                 Console.WriteLine(result.ToString());
                             }
-                            Console.WriteLine("Shutdown completed");
+                            logger.WriteLog("Shutdown completed");
                         }
-                        catch
+                        catch (Exception problem)
                         {
-                            Console.WriteLine("Shutdown crashed");
+                            logger.WriteLog($"Shutdown crashed: {problem}");
                         }
                         finally
                         {
-                            Console.WriteLine("Shutdown ended");
+                            logger.WriteLog("Shutdown ended");
                         }
                     }
                 }
@@ -182,5 +229,18 @@ namespace PsEntrypoint
             return true;
         }
 
+    }
+
+    public class Logger
+    {
+        public Logger()
+        { }
+
+        public void WriteLog(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(message);
+        }
     }
 }
