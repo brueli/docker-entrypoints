@@ -19,7 +19,7 @@ namespace PsEntrypoint
         /// <summary>
         /// Shared container state object
         /// </summary>
-        private static ContainerState ContainerState;
+        private static EntrypointState EntrypointState;
 
         /// <summary>
         /// Shutdown request event.
@@ -83,7 +83,7 @@ namespace PsEntrypoint
 
         static Program()
         {
-            ContainerState = new ContainerState();
+            EntrypointState = new EntrypointState();
             shutdownRequested = new ManualResetEvent(false);
             entrypointTerminated = new ManualResetEvent(false);
             mainTerminated = new ManualResetEvent(false);
@@ -106,13 +106,13 @@ namespace PsEntrypoint
                 {
                     Thread.Sleep(100);
                 }
-                else if (ContainerState.Shutdown)
+                else if (EntrypointState.Shutdown)
                 {
                     shutdownRequested.Set();
                 }
                 else
                 {
-                    ContainerState.Shutdown = true;
+                    EntrypointState.Shutdown = true;
                     logger.WriteLog("TERM signal received. Waiting for entrypoint to stop...");
                     if (!entrypointTerminated.WaitOne(cliArgs.StopTimeout))
                     {
@@ -134,6 +134,9 @@ namespace PsEntrypoint
             mainTerminated.Set();
         }
 
+        const string EntrypointVariableName = "entrypoint";
+        const string EntrypointVariableDescription = "Entrypoint state object to interact with the entrypoint";
+
         static void PowershellThread(object state)
         {
             var cliArgs = (PsEntrypointArgs)state;
@@ -149,7 +152,7 @@ namespace PsEntrypoint
             }
 
             var initialSessionState = InitialSessionState.CreateDefault();
-            initialSessionState.Variables.Add(new SessionStateVariableEntry("container", (IContainerState)ContainerState, "Container status"));
+            initialSessionState.Variables.Add(new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription));
 
             var psHost = new PoshEntrypointPSHost();
 

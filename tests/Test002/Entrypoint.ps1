@@ -2,7 +2,7 @@
 # startup
 
 # run code
-while(!$container.Shutdown)
+while(!$entrypoint.Shutdown)
 {
     Write-Verbose -Verbose -Message "Running"
     Start-Sleep -Seconds 1

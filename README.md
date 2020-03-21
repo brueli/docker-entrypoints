@@ -30,7 +30,7 @@ ENTRYPOINT [ "psentrypoint.exe", "--entrypointScript", "C:\bin\entrypoint\Develo
 # startup
 
 # run code
-while(!$container.Shutdown)
+while(!$entrypoint.Shutdown)
 {
     Write-Verbose -Verbose -Message "Running"
     Start-Sleep -Seconds 1
@@ -84,7 +84,7 @@ Start-Service gitlab-runner
 Start-Sleep -Seconds 2
 
 # run loop
-while (!$container.Shutdown)
+while (!$entrypoint.Shutdown)
 {
     Start-Sleep -Milliseconds 500
 
@@ -93,7 +93,7 @@ while (!$container.Shutdown)
     if (!$serviceRunning)
     {
         # send shutdown request to psentrypoint.exe
-        $container.RequestShutdown()
+        $entrypoint.RequestShutdown()
     }
 }
 

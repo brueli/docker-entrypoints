@@ -48,8 +48,8 @@
   <ItemGroup>
     <Compile Include="Arguments\CommandLineArguments.cs" />
     <Compile Include="Arguments\PoshEntrypointArgs.cs" />
-    <Compile Include="ContainerState.cs" />
-    <Compile Include="IContainerState.cs" />
+    <Compile Include="EntrypointState.cs" />
+    <Compile Include="IEntrypointState.cs" />
     <Compile Include="PSHost\HostUI.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

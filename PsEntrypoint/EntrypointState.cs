@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PsEntrypoint
 {
-    public class ContainerState : IContainerState
+    public class EntrypointState : IEntrypointState
     {
         public bool Shutdown { get; set; }
 
