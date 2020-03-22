@@ -40,7 +40,7 @@ namespace PsEntrypoint
                     StopCommand = Shift<string>();
                     argPos = 1;
                 }
-                else if (Args[0].Equals("--shutdownScript") || Args[0].Equals("-S"))
+                else if (Args[0].Equals("--stopScript") || Args[0].Equals("-S"))
                 {
                     StopScript = Shift<string>();
                     argPos = -1;
