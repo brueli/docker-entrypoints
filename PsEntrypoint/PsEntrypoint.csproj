@@ -52,7 +52,7 @@
     <Compile Include="PSHost\HostUI.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PSHost\PoshEntrypointPSHost.cs" />
+    <Compile Include="PSHost\PsEntrypointPSHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

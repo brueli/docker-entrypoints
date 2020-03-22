@@ -169,7 +169,7 @@ namespace PsEntrypoint
             var initialSessionState = InitialSessionState.CreateDefault();
             initialSessionState.Variables.Add(new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription));
 
-            var psHost = new PoshEntrypointPSHost();
+            var psHost = new PsEntrypointPSHost();
 
             using (var runspace = RunspaceFactory.CreateRunspace(psHost, initialSessionState))
             {

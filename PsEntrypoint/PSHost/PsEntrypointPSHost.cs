@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PsEntrypoint
 {
-    internal class PoshEntrypointPSHost : PSHost
+    internal class PsEntrypointPSHost : PSHost
     {
         private string m_Name;
         private Guid m_InstanceId;
@@ -19,7 +19,7 @@ namespace PsEntrypoint
         public bool ShouldExit { get; private set; }
         public int ExitCode { get; private set; }
 
-        public PoshEntrypointPSHost()
+        public PsEntrypointPSHost()
         {
             m_InstanceId = Guid.NewGuid();
             m_Name = "PSDockerHost";
