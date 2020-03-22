@@ -11,16 +11,18 @@ namespace Entrypoint.Shared
 
         public void WriteLog(string message)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.WriteLine(message);
+            using (new ConsoleColorScope(ConsoleColor.DarkGray, ConsoleColor.Black))
+            {
+                Console.WriteLine(message);
+            }
         }
 
         public void WriteFatal(string message, Exception problem)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.WriteLine($"[FATAL] {message}: {problem}");
+            using (new ConsoleColorScope(ConsoleColor.Red, ConsoleColor.Black))
+            {
+                Console.WriteLine($"[FATAL] {message}: {problem}");
+            }
         }
     }
 }
