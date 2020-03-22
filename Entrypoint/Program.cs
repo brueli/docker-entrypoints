@@ -89,6 +89,13 @@ namespace Entrypoint
                 return;
             }
 
+            // handle help requests
+            if (cliArgs.Help)
+            {
+                ShowHelp();
+                return;
+            }
+
             // print entrypoint information
             logger.WriteLog($"starting entrypoint: {cliArgs.EntrypointCommand} {cliArgs.EntrypointArguments}");
 
@@ -169,6 +176,37 @@ namespace Entrypoint
 
             // Don't run other handlers, just exit.
             return true;
+        }
+
+        private static void ShowHelp()
+        {
+            var help = new HelpWriter();
+
+            help.Section("SYNOPSIS", "Run a docker entrypoint");
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointCommand, ArgumentNames.EntrypointCommandShort },
+                "Entrypoint command to execute when the container starts.",
+                value: "<cmd command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownCommand, ArgumentNames.ShutdownCommandShort },
+                "(Optional) Shutdown command to execute when the container is stopping.",
+                value: "<cmd command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointTimeout, ArgumentNames.EntrypointTimeoutShort },
+                "(Optional) Entrypoint stop timeout in milliseconds.",
+                value: "<milliseconds>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownTimeout, ArgumentNames.ShutdownTimeoutShort },
+                "(Optional) Shutdown timeout in milliseconds.",
+                value: "milliseconds"
+            );
         }
 
     }

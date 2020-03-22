@@ -6,6 +6,9 @@ namespace Entrypoint.Shared
 {
     internal class ArgumentNames
     {
+        public const string Help = "--help";
+        public const string HelpShort = "-?";
+
         public const string EntrypointCommand = "--entrypoint";
         public const string EntrypointCommandShort = "-e";
         public const string EntrypointScript = "--entrypointScript";

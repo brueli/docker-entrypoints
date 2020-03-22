@@ -16,6 +16,8 @@ namespace Entrypoint
 
         public int EntrypointTimeout = 2000;
         public int ShutdownTimeout = 8000;
+
+        public bool Help = false;
         
         public EntrypointArgs(string[] args)
             : base(args)
@@ -45,6 +47,11 @@ namespace Entrypoint
                 else if (Args[0].Equals(ArgumentNames.ShutdownTimeout) || Args[0].Equals(ArgumentNames.ShutdownTimeoutShort))
                 {
                     EntrypointTimeout = Shift<int>();
+                    argPos = -1;
+                }
+                else if (Args[0].Equals(ArgumentNames.Help) || Args[0].Equals(ArgumentNames.HelpShort))
+                {
+                    Help = true;
                     argPos = -1;
                 }
                 else

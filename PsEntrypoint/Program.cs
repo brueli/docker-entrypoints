@@ -138,6 +138,13 @@ namespace PsEntrypoint
                 return;
             }
 
+            // handle help requests
+            if (cliArgs.Help)
+            {
+                ShowHelp();
+                return;
+            }
+
             // start powershell thread
             powershellThread.Start(cliArgs);
 
@@ -288,6 +295,54 @@ namespace PsEntrypoint
             return true;
         }
 
+        private static void ShowHelp()
+        {
+            var help = new HelpWriter();
+
+            help.Section("SYNOPSIS", "Run a docker entrypoint in a Powershell host");
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointCommand, ArgumentNames.EntrypointCommandShort },
+                "Entrypoint command to execute when the container starts.",
+                value: "<powershell command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointScript, ArgumentNames.EntrypointScriptShort },
+                "Script file to execute when the container starts.",
+                value: "<script file>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownCommand, ArgumentNames.ShutdownCommandShort},
+                "(Optional) Shutdown command to execute when the container is stopping.",
+                value: "<powershell command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownScript, ArgumentNames.ShutdownScriptShort },
+                "(Optional) Script file to execute when the container is stopping.",
+                value: "<script file>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointTimeout, ArgumentNames.EntrypointTimeoutShort },
+                "(Optional) Entrypoint stop timeout in milliseconds.",
+                value: "<milliseconds>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownTimeout, ArgumentNames.ShutdownTimeoutShort },
+                "(Optional) Shutdown timeout in milliseconds.",
+                value: "milliseconds"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.IgnoreErrors, ArgumentNames.IgnoreErrorsShort},
+                "(Optional) Ignore errors in entrypoint/shutdown scripts."
+            );
+
+        }
     }
 
 

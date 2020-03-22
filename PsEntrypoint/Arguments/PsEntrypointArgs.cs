@@ -18,6 +18,8 @@ namespace PsEntrypoint
         public int ShutdownTimeout = 8000;
         public bool IgnoreErrors = false;
 
+        public bool Help = false;
+
         public PsEntrypointArgs(string[] args)
             : base(args)
         {
@@ -61,6 +63,11 @@ namespace PsEntrypoint
                 else if (Args[0].Equals(ArgumentNames.IgnoreErrors) || Args[0].Equals(ArgumentNames.IgnoreErrorsShort))
                 {
                     IgnoreErrors = true;
+                    argPos = -1;
+                }
+                else if (Args[0].Equals(ArgumentNames.Help) || Args[0].Equals(ArgumentNames.HelpShort))
+                {
+                    Help = true;
                     argPos = -1;
                 }
                 else

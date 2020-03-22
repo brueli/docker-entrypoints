@@ -12,10 +12,15 @@ param(
 )
 
 
+Set-Location $PSScriptRoot
+
+
 # set subject under test
 
 $subjectExe = "..\PSEntrypoint\bin\$Configuration\PSEntrypoint.exe"
 
+
+& $subjectExe --help
 
 # test 001: print all types of messages
 

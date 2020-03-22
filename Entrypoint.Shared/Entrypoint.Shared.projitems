@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Arguments\InvalidCommandLineException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ConsoleColorScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ConsoleColorSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\HelpWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\Logger.cs" />
   </ItemGroup>
 </Project>
