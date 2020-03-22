@@ -112,20 +112,33 @@ namespace PsEntrypoint
 
         static void Main(string[] args)
         {
+            // add Ctrl+C handler
             SetConsoleCtrlHandler(consoleCloseHandler, true);
+
+            // set fatal error callback action
             EntrypointState.ReportFatalErrorCallback = (problem) => {
                 logger.WriteFatal("Fatal error in entrypoint", problem);
-                if (!cliArgs.IgnoreFatalErrors)
-                { 
+                if (!cliArgs.IgnoreErrors)
+                {
                     EntrypointState.RequestShutdown();
                 }
             };
 
-            cliArgs = new PsEntrypointArgs(args);
-
             // write banner
             logger.WriteBanner();
 
+            // parse arguments
+            try
+            {
+                cliArgs = new PsEntrypointArgs(args);
+            }
+            catch (InvalidCommandLineException invocationProblem)
+            {
+                Console.WriteLine("Invalid command: {0}", invocationProblem.Message);
+                return;
+            }
+
+            // start powershell thread
             powershellThread.Start(cliArgs);
 
             while (!entrypointTerminated.WaitOne(0))
@@ -142,19 +155,26 @@ namespace PsEntrypoint
                 {
                     EntrypointState.Shutdown = true;
                     logger.WriteLog("TERM signal received. Waiting for entrypoint to stop...");
-                    if (!entrypointTerminated.WaitOne(cliArgs.StopTimeout))
+                    if (!entrypointTerminated.WaitOne(cliArgs.EntrypointTimeout))
                     {
-                        logger.WriteLog($"entrypoint did not stop after {cliArgs.StopTimeout}ms. Forcing termination...");
+                        logger.WriteLog($"entrypoint did not stop after {cliArgs.EntrypointTimeout}ms. Forcing termination...");
                         powershellThread.Interrupt();
                     }
                     break;
                 }
             }
 
-            // wait for powershell thread to terminate
+            // wait for entrypoint to terminate
             entrypointTerminated.WaitOne();
 
             // wait for shutdown
+            if (!shutdownTerminated.WaitOne(cliArgs.ShutdownTimeout))
+            {
+                logger.WriteLog($"shutdown did not stop after {cliArgs.ShutdownTimeout}ms. Forcing termination...");
+                powershellThread.Interrupt();
+            }
+
+            // wait for shutdown to terminate
             shutdownTerminated.WaitOne();
 
 #if DEBUG
@@ -174,9 +194,9 @@ namespace PsEntrypoint
                 cliArgs.EntrypointCommand = System.IO.File.ReadAllText(cliArgs.EntrypointScript);
             }
 
-            if (!string.IsNullOrWhiteSpace(cliArgs.StopScript))
+            if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownScript))
             {
-                cliArgs.StopCommand = System.IO.File.ReadAllText(cliArgs.StopScript);
+                cliArgs.ShutdownCommand = System.IO.File.ReadAllText(cliArgs.ShutdownScript);
             }
 
             var initialSessionState = InitialSessionState.CreateDefault();
@@ -223,12 +243,12 @@ namespace PsEntrypoint
                 entrypointTerminated.Set();
 
                 // run shutdown command
-                if (!string.IsNullOrWhiteSpace(cliArgs.StopCommand))
+                if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownCommand))
                 {
                     using (powershell = PowerShell.Create())
                     {
                         powershell.Runspace = runspace;
-                        powershell.AddScript(cliArgs.StopCommand);
+                        powershell.AddScript(cliArgs.ShutdownCommand);
                         var shutdownResult = powershell.BeginInvoke();
                         Console.WriteLine("Shutdown initiated");
                         Thread.Sleep(5);
@@ -239,6 +259,11 @@ namespace PsEntrypoint
                                 Console.WriteLine(result.ToString());
                             }
                             logger.WriteLog("Shutdown completed");
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            logger.WriteLog("Shutdown interrupted. Terminating...");
+                            powershell.Stop();
                         }
                         catch (Exception problem)
                         {

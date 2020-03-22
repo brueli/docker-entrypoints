@@ -9,7 +9,9 @@
     <Import_RootNamespace>Entrypoint.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Arguments\ArgumentNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Arguments\CommandLineArguments.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Arguments\InvalidCommandLineException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ConsoleColorScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ConsoleColorSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\Logger.cs" />

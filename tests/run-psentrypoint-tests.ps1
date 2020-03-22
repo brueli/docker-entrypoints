@@ -23,7 +23,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test001\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -34,8 +34,8 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test002\Entrypoint.ps1'
-    '--stopScript', '.\Test002\Shutdown.ps1'
-    '--stop-timeout', 2000
+    '--shutdownScript', '.\Test002\Shutdown.ps1'
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -46,7 +46,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test003\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -57,7 +57,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test004\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -68,6 +68,6 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test005\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
