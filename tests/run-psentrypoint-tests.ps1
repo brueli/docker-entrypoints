@@ -34,7 +34,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test002\Entrypoint.ps1'
-    '--shutdownScript', '.\Test002\Shutdown.ps1'
+    '--stopScript', '.\Test002\Shutdown.ps1'
     '--stop-timeout', 2000
     ' || exit 1'
 ) -Wait
