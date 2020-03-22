@@ -36,6 +36,12 @@ namespace PsEntrypoint
         private static ManualResetEvent entrypointTerminated;
 
         /// <summary>
+        /// Shutdown terminated event.
+        /// Is set by the powershell thread to signal that the shutdown script has terminated.
+        /// </summary>
+        private static ManualResetEvent shutdownTerminated;
+
+        /// <summary>
         /// Main thread terminated event.
         /// Is set by the main thread to signal its termination to the Ctrl+C handler.
         /// </summary>
@@ -97,6 +103,7 @@ namespace PsEntrypoint
             EntrypointState = new EntrypointState();
             shutdownRequested = new ManualResetEvent(false);
             entrypointTerminated = new ManualResetEvent(false);
+            shutdownTerminated = new ManualResetEvent(false);
             mainTerminated = new ManualResetEvent(false);
             logger = new Logger();
             powershellThread = new Thread(new ParameterizedThreadStart(PowershellThread));
@@ -146,6 +153,9 @@ namespace PsEntrypoint
 
             // wait for powershell thread to terminate
             entrypointTerminated.WaitOne();
+
+            // wait for shutdown
+            shutdownTerminated.WaitOne();
 
 #if DEBUG
             Console.WriteLine("<Press return to exit>");
@@ -242,7 +252,8 @@ namespace PsEntrypoint
                 }
                 runspace.Close();
             }
-            
+
+            shutdownTerminated.Set();
         }
 
         private static bool OnConsoleCloseEvent(int reason)
