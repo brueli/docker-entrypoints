@@ -12,22 +12,6 @@ param(
 )
 
 
-# set working directory
-
-Set-Location $PSScriptRoot
-
-# set subject under test
-
-$subjectExe = "..\Entrypoint\bin\$Configuration\Entrypoint.exe"
-
-
-start cmd.exe -ArgumentList @(
-    '/c'
-    $subjectExe
-    'ping -t 127.0.0.1', '|| exit 1'
-) -Wait
-
-
 # set subject under test
 
 $subjectExe = "..\PSEntrypoint\bin\$Configuration\PSEntrypoint.exe"
