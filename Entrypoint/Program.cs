@@ -205,7 +205,7 @@ namespace Entrypoint
             help.Argument(
                 new string[] { ArgumentNames.ShutdownTimeout, ArgumentNames.ShutdownTimeoutShort },
                 "(Optional) Shutdown timeout in milliseconds.",
-                value: "milliseconds"
+                value: "<milliseconds>"
             );
         }
 

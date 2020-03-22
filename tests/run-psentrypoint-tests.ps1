@@ -20,7 +20,10 @@ Set-Location $PSScriptRoot
 $subjectExe = "..\PSEntrypoint\bin\$Configuration\PSEntrypoint.exe"
 
 
+# show help
+
 & $subjectExe --help
+
 
 # test 001: print all types of messages
 
