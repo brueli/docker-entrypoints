@@ -209,6 +209,9 @@ namespace PsEntrypoint
                     }
                 }
 
+                // signal entrypoint terminated
+                entrypointTerminated.Set();
+
                 // run shutdown command
                 if (!string.IsNullOrWhiteSpace(cliArgs.StopCommand))
                 {
@@ -239,8 +242,7 @@ namespace PsEntrypoint
                 }
                 runspace.Close();
             }
-
-            entrypointTerminated.Set();
+            
         }
 
         private static bool OnConsoleCloseEvent(int reason)
