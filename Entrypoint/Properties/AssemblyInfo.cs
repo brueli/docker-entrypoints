@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Entrypoint")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Namics AG")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Entrypoint")]
-[assembly: AssemblyCopyright("Copyright © Namics AG 2020")]
+[assembly: AssemblyCopyright("Copyright © Ramon Brülisauer 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

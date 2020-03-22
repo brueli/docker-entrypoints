@@ -116,6 +116,9 @@ namespace PsEntrypoint
 
             cliArgs = new PsEntrypointArgs(args);
 
+            // write banner
+            logger.WriteBanner();
+
             powershellThread.Start(cliArgs);
 
             while (!entrypointTerminated.WaitOne(0))

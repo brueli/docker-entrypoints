@@ -84,6 +84,9 @@ namespace Entrypoint
 
             cliArgs = new EntrypointArgs(args);
 
+            // write banner
+            logger.WriteBanner();
+
             // print entrypoint information
             logger.WriteLog($"starting entrypoint: {cliArgs.EntrypointCommand} {cliArgs.EntrypointArguments}");
 

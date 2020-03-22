@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <AssemblyCopyright>Copyright © Ramon Brülisauer 2020</AssemblyCopyright>
+    <VersionNumber>1.0.1.0</VersionNumber>
+  </PropertyGroup>
+  
+  <Target Name="BeforeBuild" >
+    <Message Text="Updating AssemblyInfo to Version $(VersionNumber)"></Message>
+    <Message Text="Writing to AssemblyInfo files in $(SolutionRoot)"></Message>
+    <AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)"
+                  AssemblyCopyright="$(AssemblyCopyright)"
+                  AssemblyVersion="$(VersionNumber)"
+                  AssemblyFileVersion="$(VersionNumber)"
+                  >
+    </AssemblyInfo>
+  </Target>
+  
+</Project>

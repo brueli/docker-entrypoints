@@ -60,5 +60,6 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\Entrypoint.Shared\Entrypoint.Shared.projitems" Label="Shared" />
+  <Import Project="..\build-version.props" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
