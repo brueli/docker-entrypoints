@@ -207,9 +207,8 @@ namespace PsEntrypoint
             }
 
             var initialSessionState = InitialSessionState.CreateDefault();
-            var entrypointVariable = new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription, ScopedItemOptions.AllScope);
+            var entrypointVariable = new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription, ScopedItemOptions.AllScope | ScopedItemOptions.ReadOnly);
             initialSessionState.Variables.Add(entrypointVariable);
-            
 
             var psHost = new PsEntrypointPSHost();
 
@@ -268,7 +267,6 @@ namespace PsEntrypoint
                     using (powershell = PowerShell.Create())
                     {
                         powershell.Runspace = runspace;
-                        powershell.AddCommand("Set-ExecutionPolicy").AddParameter("-ExecutionPolicy", "Bypass").AddParameter("-Scope", "Process").Invoke();
 
                         if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownScript))
                         {
