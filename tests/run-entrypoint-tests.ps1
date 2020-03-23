@@ -22,6 +22,11 @@ Set-Location $PSScriptRoot
 $subjectExe = "..\Entrypoint\bin\$Configuration\Entrypoint.exe"
 
 
+# show help
+
+& $subjectExe --help
+
+
 # run test
 
 start cmd.exe -ArgumentList @(

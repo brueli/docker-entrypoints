@@ -30,17 +30,12 @@ namespace Entrypoint
         private delegate bool ConsoleCloseHandler(int closeReason);
 
         /// <summary>
-        ///  Event set when the process is terminated.
+        ///  Signal: Ctrl+C signal received / entrypoint has requested shutdown.
         /// </summary>
         private static readonly ManualResetEvent shutdownRequested;
 
         /// <summary>
-        /// Event set when the process terminates.
-        /// </summary>
-        private static readonly ManualResetEvent entrypointTerminated;
-
-        /// <summary>
-        /// Event set when main terminates.
+        /// Signal: main() terminated.
         /// </summary>
         private static readonly ManualResetEvent mainTerminated;
 
@@ -68,7 +63,6 @@ namespace Entrypoint
             // also this is a great place to initialize multiple static
             // variables.
             shutdownRequested = new ManualResetEvent(false);
-            entrypointTerminated = new ManualResetEvent(false);
             mainTerminated = new ManualResetEvent(false);
             consoleCloseHandler = new ConsoleCloseHandler(OnConsoleCloseEvent);
             logger = new Logger();
@@ -82,7 +76,25 @@ namespace Entrypoint
         {
             SetConsoleCtrlHandler(consoleCloseHandler, true);
 
-            cliArgs = new EntrypointArgs(args);
+            // write banner
+            logger.WriteBanner();
+
+            try
+            {
+                cliArgs = new EntrypointArgs(args);
+            }
+            catch (InvalidCommandLineException invocationProblem)
+            {
+                Console.WriteLine("Invalid command: {0}", invocationProblem.Message);
+                return;
+            }
+
+            // handle help requests
+            if (cliArgs.Help)
+            {
+                ShowHelp();
+                return;
+            }
 
             // print entrypoint information
             logger.WriteLog($"starting entrypoint: {cliArgs.EntrypointCommand} {cliArgs.EntrypointArguments}");
@@ -113,7 +125,7 @@ namespace Entrypoint
                 entrypoint.CloseMainWindow();
 
                 // if the entrypoint does not respond after 10 seconds, kill the entrypoint process.
-                if (!entrypoint.WaitForExit(cliArgs.StopTimeout))
+                if (!entrypoint.WaitForExit(cliArgs.EntrypointTimeout))
                 {
                     entrypoint.Kill();
                     logger.WriteLog("entrypoint killed");
@@ -125,13 +137,10 @@ namespace Entrypoint
                 }
             }
             
-            // send "entrypoint terminated" signal
-            entrypointTerminated.Set();
-
             // invoke shutdown command, if any.
-            if (!string.IsNullOrWhiteSpace(cliArgs.StopCommand))
+            if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownCommand))
             { 
-                var shutdown = Process.Start(cliArgs.StopCommand, cliArgs.StopArguments);
+                var shutdown = Process.Start(cliArgs.ShutdownCommand, cliArgs.ShutdownArguments);
                 if (!shutdown.WaitForExit(cliArgs.ShutdownTimeout))
                 {
                     shutdown.Kill();
@@ -161,12 +170,43 @@ namespace Entrypoint
         {
             // Signal termination
             shutdownRequested.Set();
-
+            
             // Wait for cleanup
             mainTerminated.WaitOne();
 
             // Don't run other handlers, just exit.
             return true;
+        }
+
+        private static void ShowHelp()
+        {
+            var help = new HelpWriter();
+
+            help.Section("SYNOPSIS", "Run a docker entrypoint");
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointCommand, ArgumentNames.EntrypointCommandShort },
+                "Entrypoint command to execute when the container starts.",
+                value: "<cmd command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownCommand, ArgumentNames.ShutdownCommandShort },
+                "(Optional) Shutdown command to execute when the container is stopping.",
+                value: "<cmd command>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.EntrypointTimeout, ArgumentNames.EntrypointTimeoutShort },
+                "(Optional) Entrypoint stop timeout in milliseconds.",
+                value: "<milliseconds>"
+            );
+
+            help.Argument(
+                new string[] { ArgumentNames.ShutdownTimeout, ArgumentNames.ShutdownTimeoutShort },
+                "(Optional) Shutdown timeout in milliseconds.",
+                value: "<milliseconds>"
+            );
         }
 
     }

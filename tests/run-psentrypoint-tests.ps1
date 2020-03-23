@@ -12,25 +12,17 @@ param(
 )
 
 
-# set working directory
-
 Set-Location $PSScriptRoot
-
-# set subject under test
-
-$subjectExe = "..\Entrypoint\bin\$Configuration\Entrypoint.exe"
-
-
-start cmd.exe -ArgumentList @(
-    '/c'
-    $subjectExe
-    'ping -t 127.0.0.1', '|| exit 1'
-) -Wait
 
 
 # set subject under test
 
 $subjectExe = "..\PSEntrypoint\bin\$Configuration\PSEntrypoint.exe"
+
+
+# show help
+
+& $subjectExe --help
 
 
 # test 001: print all types of messages
@@ -39,7 +31,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test001\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -51,7 +43,7 @@ start cmd.exe -ArgumentList @(
     $subjectExe
     '--entrypointScript', '.\Test002\Entrypoint.ps1'
     '--shutdownScript', '.\Test002\Shutdown.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -62,7 +54,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test003\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -73,7 +65,7 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test004\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait
 
@@ -84,6 +76,6 @@ start cmd.exe -ArgumentList @(
     '/c'
     $subjectExe
     '--entrypointScript', '.\Test005\Entrypoint.ps1'
-    '--stop-timeout', 2000
+    '--entrypointTimeout', 2000
     ' || exit 1'
 ) -Wait

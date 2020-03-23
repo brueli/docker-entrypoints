@@ -4,6 +4,7 @@
 #>
 
 # startup
+Write-Host "Running in $PSScriptRoot"
 
 # run code
 $i = 0

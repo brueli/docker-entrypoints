@@ -9,6 +9,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsEntrypoint", "PsEntrypoin
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Entrypoint.Shared", "Entrypoint.Shared\Entrypoint.Shared.shproj", "{65061144-5127-494D-ADD2-26CF2AF49967}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{77B67066-6A5C-4034-84D2-E583646E6981}"
+	ProjectSection(SolutionItems) = preProject
+		build-version.props = build-version.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Entrypoint.Shared\Entrypoint.Shared.projitems*{00521f61-f9d6-48cf-ad4b-3806eacd5cee}*SharedItemsImports = 4
