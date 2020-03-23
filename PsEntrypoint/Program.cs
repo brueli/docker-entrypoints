@@ -207,7 +207,9 @@ namespace PsEntrypoint
             }
 
             var initialSessionState = InitialSessionState.CreateDefault();
-            initialSessionState.Variables.Add(new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription));
+            var entrypointVariable = new SessionStateVariableEntry(EntrypointVariableName, (IEntrypointState)EntrypointState, EntrypointVariableDescription, ScopedItemOptions.AllScope);
+            initialSessionState.Variables.Add(entrypointVariable);
+            
 
             var psHost = new PsEntrypointPSHost();
 
@@ -220,7 +222,18 @@ namespace PsEntrypoint
                 using (powershell = PowerShell.Create())
                 {
                     powershell.Runspace = runspace;
-                    powershell.AddScript(cliArgs.EntrypointCommand);
+                    powershell.AddCommand("Set-ExecutionPolicy").AddParameter("-ExecutionPolicy", "Bypass").AddParameter("-Scope", "Process").Invoke();
+
+                    if (!string.IsNullOrWhiteSpace(cliArgs.EntrypointScript))
+                    {
+                        var entrypointScript = runspace.SessionStateProxy.InvokeCommand.GetCommand(cliArgs.EntrypointScript, CommandTypes.ExternalScript);
+                        powershell.AddCommand(entrypointScript);
+                    }
+                    else
+                    {
+                        powershell.AddScript(cliArgs.EntrypointCommand);
+                    }
+
                     var entrypointResult = powershell.BeginInvoke();
                     logger.WriteLog("Entrypoint started");
                     Thread.Sleep(5);
@@ -236,9 +249,9 @@ namespace PsEntrypoint
                         logger.WriteLog("Entrypoint interrupted. Terminating...");
                         powershell.Stop();
                     }
-                    catch
+                    catch (Exception problem)
                     {
-                        logger.WriteLog("Entrypoint crashed");
+                        logger.WriteLog($"Entrypoint crashed: {problem}");
                     }
                     finally
                     {
@@ -255,7 +268,18 @@ namespace PsEntrypoint
                     using (powershell = PowerShell.Create())
                     {
                         powershell.Runspace = runspace;
-                        powershell.AddScript(cliArgs.ShutdownCommand);
+                        powershell.AddCommand("Set-ExecutionPolicy").AddParameter("-ExecutionPolicy", "Bypass").AddParameter("-Scope", "Process").Invoke();
+
+                        if (!string.IsNullOrWhiteSpace(cliArgs.ShutdownScript))
+                        {
+                            var shutdownScript = runspace.SessionStateProxy.InvokeCommand.GetCommand(cliArgs.ShutdownScript, CommandTypes.ExternalScript);
+                            powershell.AddCommand(shutdownScript);
+                        }
+                        else
+                        {
+                            powershell.AddScript(cliArgs.ShutdownCommand);
+                        }
+
                         var shutdownResult = powershell.BeginInvoke();
                         Console.WriteLine("Shutdown initiated");
                         Thread.Sleep(5);
